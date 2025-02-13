@@ -21,7 +21,7 @@ const rotas = createBrowserRouter([
     children: [
       {
         path: "/",
-        element: <> oi </>
+        element: <> </>
       },
 
       /* Listagens */
