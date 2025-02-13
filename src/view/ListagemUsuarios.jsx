@@ -79,6 +79,7 @@ function ListagemUsuarios() {
                     <th scope='col'>Telefone</th>
                     <th scope='col'>Tipo</th>
                     <th scope='col'>Ultimo Login</th>
+                    <th></th>
                   </tr>
                 </thead>
                 <tbody>

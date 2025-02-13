@@ -32,7 +32,7 @@ function CadastroUsuario() {
   const [logradouro, setLogradouro] = useState('');
   const [numero, setNumero] = useState('');
   const [complemento, setComplemento] = useState('');
-  const [dataNasc, setDataNasc] = useState(new Date());
+  const [dataNascimento, setDataNascimento] = useState(new Date());
 
 
   const [dados, setDados] = useState([]);
@@ -51,12 +51,11 @@ function CadastroUsuario() {
       setLogradouro('');
       setNumero('');
       setComplemento('');
-      setDataNasc(null);
+      setDataNascimento(null);
     } 
     else {
       setId(dados.id);
       setNome(dados.nome);
-      setDataNasc(dados.dataNasc);
       setTelefone(dados.telefone);
       setEmail(dados.email);
       setCpf(dados.cpf);
@@ -67,6 +66,7 @@ function CadastroUsuario() {
       setLogradouro(dados.logradouro);
       setNumero(dados.numero);
       setComplemento(dados.complemento);
+      setDataNascimento(dados.dataNascimento);
     } 
   }
 
@@ -84,7 +84,7 @@ function CadastroUsuario() {
       logradouro,
       numero,
       complemento,
-      dataNasc,
+      dataNascimento,
     };
     data = JSON.stringify(data);
     if (idParam == null) {
@@ -132,7 +132,7 @@ function CadastroUsuario() {
       setLogradouro(dados.endereco.logradouro);
       setNumero(dados.endereco.numero);
       setComplemento(dados.endereco.complemento);
-      setDataNasc(dados.dataNasc);
+      setDataNascimento(dados.dataNascimento);
     }
   }
 
@@ -258,7 +258,7 @@ function CadastroUsuario() {
                 />
               </FormGroup>
 
-              <FormGroup label='Complemento: *' htmlFor='inputComplemento'>
+              <FormGroup label='Complemento:' htmlFor='inputComplemento'>
                 <input
                   type='text'
                   id='inputComplemento'
@@ -269,14 +269,14 @@ function CadastroUsuario() {
                 />
               </FormGroup>
 
-              <FormGroup label='Data de Nascimento: *' htmlFor='inputDataNasc'>
+              <FormGroup label='Data de Nascimento: *' htmlFor='inputDataNascimento'>
                 <input
                   type='date'
-                  id='inputDataNasc'
-                  value={dataNasc}
+                  id='inputDataNascimento'
+                  value={dataNascimento}
                   className='form-control'
-                  name='dataNasc'
-                  onChange={(e) => setDataNasc(e.target.value)}
+                  name='dataNascimento'
+                  onChange={(e) => setDataNascimento(e.target.value)}
                 />
               </FormGroup>
 
