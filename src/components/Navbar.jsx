@@ -16,6 +16,13 @@ export function Navbar(props) {
               <li className="nav-item">
                 <NavbarItem
                   render='true'
+                  href='/listagem-compras'
+                  label='Compras'
+                />
+              </li>
+              <li className="nav-item">
+                <NavbarItem
+                  render='true'
                   href='/listagem-produtos'
                   label='Produtos'
                 />
@@ -23,29 +30,15 @@ export function Navbar(props) {
               <li className="nav-item">
                 <NavbarItem
                   render='true'
-                  href='/listagem-historico'
-                  label='Histórico'
+                  href='/listagem-estoques'
+                  label='Estoques'
                 />
               </li>
               <li className="nav-item">
                 <NavbarItem
                   render='true'
-                  href='/cadastrar-sugestao'
-                  label='Sugestão de Produto'
-                />
-              </li>
-              <li className="nav-item">
-                <NavbarItem
-                  render='true'
-                  href='/gerenciar-produtos'
-                  label='Gerenciar Produtos'
-                />
-              </li>
-              <li className="nav-item">
-                <NavbarItem
-                  render='true'
-                  href='/gerenciar-sugestoes'
-                  label='Gerenciar Sugestões'
+                  href='/listagem-sugestoes'
+                  label='Sugestões'
                 />
               </li>
               <li className="nav-item">
