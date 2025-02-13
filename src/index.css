@@ -11,3 +11,29 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+/* Toastr */
+#toast-container > .toast-success {
+  background-color: #28a745;
+  color: white;
+}
+
+#toast-container > .toast-error {
+  background-color: #dc3545;
+  color: white;
+}
+
+#toast-container > .toast-warning {
+  background-color: #ffc107;
+  color: black;
+}
+
+#toast-container > .toast-info {
+  background-color: #17a2b8;
+  color: white;
+}
+
+
+#toast-container.toast-top-right {
+  top: 80px;
+}
