@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 
-import Card from '../components/card';
+import Card from '../components/Card';
 
-import { mensagemSucesso, mensagemErro } from '../components/toastr';
+import { mensagemSucesso, mensagemErro } from '../components/Toastr';
 
 import { useNavigate } from 'react-router-dom';
 

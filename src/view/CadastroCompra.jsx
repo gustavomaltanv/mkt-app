@@ -6,10 +6,10 @@ import { IconButton } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import Button from '@mui/material/Button';
 
-import Card from '../components/card';
+import Card from '../components/Card';
 import FormGroup from '../components/FormGroup';
 
-import { mensagemSucesso, mensagemErro } from '../components/toastr';
+import { mensagemSucesso, mensagemErro } from '../components/Toastr';
 
 
 import axios from 'axios';

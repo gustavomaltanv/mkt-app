@@ -3,10 +3,10 @@ import { useNavigate, useParams } from 'react-router-dom';
 
 import Stack from '@mui/material/Stack';
 
-import Card from '../components/card';
+import Card from '../components/Card';
 import FormGroup from '../components/FormGroup';
 
-import { mensagemSucesso, mensagemErro } from '../components/toastr';
+import { mensagemSucesso, mensagemErro } from '../components/Toastr';
 
 import axios from 'axios';
 import { BASE_URL } from '../config/axios';
