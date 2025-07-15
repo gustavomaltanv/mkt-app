@@ -1,4 +1,4 @@
-import "bootswatch/dist/brite/bootstrap.min.css"
+import "bootswatch/dist/united/bootstrap.min.css"
 import { rotas } from "./rotas"
 import { RouterProvider } from "react-router-dom"
 

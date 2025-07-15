@@ -93,7 +93,6 @@ function ListagemCompras() {
               <table className='table table-hover table-striped'>
                 <thead>
                   <tr>
-                    <th scope='col'>#</th>
                     <th scope='col'>Usuário</th>
                     <th scope='col'>Data da Compra</th>
                     <th scope='col'>Status</th>
@@ -103,7 +102,6 @@ function ListagemCompras() {
                 <tbody>
                   {compras.map((compra) => (
                     <tr key={compra.id}>
-                      <td>{compra.id}</td>
                       <td>{compra.nomeUsuario}</td>
                       <td>{formatarData(compra.dataCompra)}</td>
                       <td>{compra.status}</td>
@@ -111,12 +109,14 @@ function ListagemCompras() {
                         <Stack spacing={1} padding={0} direction='row'>
                           <IconButton
                             aria-label='edit'
+                            color="inherit"
                             onClick={() => editar(compra.id)}
                           >
                             <EditIcon />
                           </IconButton>
                           <IconButton
                             aria-label='delete'
+                            color="inherit"
                             onClick={() => excluir(compra.id)}
                           >
                             <DeleteIcon />

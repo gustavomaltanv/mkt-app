@@ -1,5 +1,6 @@
 import { createBrowserRouter, Outlet } from "react-router-dom";
 import { Navbar } from "./components/Navbar";
+import RootLayout from "./main/RootLayout";
 import ListagemUsuarios from "./view/ListagemUsuarios";
 import CadastroUsuario from "./view/CadastroUsuario";
 import ListagemSugestoes from "./view/ListagemSugestoes";
@@ -13,11 +14,7 @@ import CadastroCompra from "./view/CadastroCompra";
 
 const rotas = createBrowserRouter([
   {
-    element: 
-      <> 
-        <Navbar /> 
-        <Outlet /> 
-      </>,
+    element:<RootLayout />,
     children: [
       {
         path: "/",

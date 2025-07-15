@@ -99,12 +99,14 @@ function ListagemEstoques() {
                         <Stack spacing={1} padding={0} direction='row'>
                           <IconButton
                             aria-label='edit'
+                            color="inherit"
                             onClick={() => editar(estoque.id)}
                           >
                             <EditIcon />
                           </IconButton>
                           <IconButton
                             aria-label='delete'
+                            color="inherit"
                             onClick={() => excluir(estoque.id)}
                           >
                             <DeleteIcon />
