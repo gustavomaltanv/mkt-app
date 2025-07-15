@@ -33,7 +33,11 @@ code {
   color: white;
 }
 
-
 #toast-container.toast-top-right {
   top: 80px;
+}
+
+.bg-custom {
+  background-color: #b9b9b9;
+  min-height: 100vh;
 }
