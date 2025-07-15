@@ -1,113 +1,97 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-
-import Stack from '@mui/material/Stack';
+import axios from 'axios';
 
 import Card from '../components/Card';
 import FormGroup from '../components/FormGroup';
-
 import { mensagemSucesso, mensagemErro } from '../components/Toastr';
+import { BASE_URL } from '../config/axios';
 
+import Stack from '@mui/material/Stack';
 
-
-import axios from 'axios';
-import { BASE_URL2 } from '../config/axios';
-
-const baseURL = `${BASE_URL2}/sugestoes`;
+const sugestoesURL = `${BASE_URL}/sugestoes`;
+const usuariosURL = `${BASE_URL}/usuarios`;
 
 function CadastroSugestao() {
   const { idParam } = useParams();
-
   const navigate = useNavigate();
+  const isNew = idParam === undefined;
 
-  const [id, setId] = useState('');
+  // Estados do formulário
   const [nome, setNome] = useState('');
-  const [descricao, setDescricao] = useState('');
-  const [dataCriacao, setDataCriacao] = useState(new Date());
-  const [status, setStatus] = useState('');
+  const [idUsuario, setIdUsuario] = useState('');
+  const [status, setStatus] = useState('PENDENTE'); // Valor padrão
 
-  const [dados, setDados] = useState([]);
-
-  function inicializar() {
-    if (idParam == null) {
-      setId('');
-      setNome('');
-      setDescricao('');
-      setDataCriacao(null);
-      setStatus('');
-    }
-    else {
-      setId(dados.id);
-      setNome(dados.nome);
-      setDescricao(dados.descricao);
-      setDataCriacao(dados.dataCriacao);
-      setStatus(dados.status);
-    }
-  }
-
-  async function salvar() {
-    let data = {
-      id,
-      nome,
-      descricao,
-      dataCriacao,
-      status,
-    };
-    data = JSON.stringify(data);
-    if (idParam == null) {
-      await axios
-        .post(baseURL, data, {
-          headers: { 'Content-Type': 'application/json' },
-        })
-        .then(function (response) {
-          mensagemSucesso(`Sugestão ${nome} cadastrado(a) com sucesso!`)
-          navigate(`/listagem-sugestoes`);
-        })
-        .catch(function (error) {
-          mensagemErro(error.response.data);
-        });
-    }
-    else {
-      await axios
-        .put(`${baseURL}/${idParam}`, data, {
-          headers: { 'Content-Type': 'application/json' },
-        })
-        .then(function (response) {
-          mensagemSucesso(`Sugestão ${nome} alterado(a) com sucesso!`);
-          navigate(`/listagem-sugestoes`);
-        })
-        .catch(function (error) {
-          mensagemErro(error.response.data);
-        });
-    }
-  }
-
-  async function buscar() {
-    if (idParam != null) {
-      await axios.get(`${baseURL}/${idParam}`).then((response) => {
-        setDados(response.data);
-      });
-      setId(dados.id);
-      setNome(dados.nome);
-      setDescricao(dados.descricao);
-      setDataCriacao(dados.dataCriacao);
-      setStatus(dados.status);
-    }
-  }
+  // Estado para armazenar a lista de usuários
+  const [usuarios, setUsuarios] = useState([]);
 
   useEffect(() => {
-    buscar();
-  }, [id]);
+    // Busca a lista de todos os usuários para popular o select
+    const fetchUsuarios = async () => {
+      try {
+        const response = await axios.get(usuariosURL);
+        setUsuarios(response.data);
+      } catch (error) {
+        mensagemErro('Falha ao carregar a lista de usuários.');
+      }
+    };
 
-  if (!dados) return null;
+    fetchUsuarios();
+
+    // Se estiver editando, busca os dados da sugestão
+    if (!isNew) {
+      axios.get(`${sugestoesURL}/${idParam}`)
+        .then(response => {
+          const { data } = response;
+          setNome(data.nome);
+          setStatus(data.status);
+          setIdUsuario(data.idUsuario);
+        })
+        .catch(error => {
+          mensagemErro('Sugestão não encontrada.');
+          navigate('/listagem-sugestoes');
+        });
+    }
+  }, [idParam, isNew, navigate]);
+
+  const salvar = async () => {
+    // Validação simples
+    if (!nome || !idUsuario) {
+      mensagemErro('Os campos Nome e Usuário são obrigatórios.');
+      return;
+    }
+
+    const data = {
+      nome,
+      idUsuario: Number(idUsuario), // Garante que o ID é um número
+      status,
+    };
+
+    const request = isNew
+      ? axios.post(sugestoesURL, data)
+      : axios.put(`${sugestoesURL}/${idParam}`, data);
+
+    try {
+      await request;
+      const message = isNew ? 'Sugestão cadastrada com sucesso!' : 'Sugestão atualizada com sucesso!';
+      mensagemSucesso(message);
+      navigate('/listagem-sugestoes');
+    } catch (error) {
+      mensagemErro(error.response?.data?.message || 'Erro ao salvar sugestão.');
+    }
+  };
+
+  const cancelar = () => {
+    navigate('/listagem-sugestoes');
+  };
 
   return (
     <div className='container'>
-      <Card title='Cadastro de Sugestão'>
+      <Card title={isNew ? 'Cadastro de Sugestão' : 'Edição de Sugestão'}>
         <div className='row'>
           <div className='col-lg-12'>
             <div className='bs-component'>
-              <FormGroup label='Nome: *' htmlFor='inputNome'>
+              <FormGroup label='Nome do Produto: *' htmlFor='inputNome'>
                 <input
                   type='text'
                   id='inputNome'
@@ -118,15 +102,21 @@ function CadastroSugestao() {
                 />
               </FormGroup>
 
-              <FormGroup label='Descrição: *' htmlFor='inputDescricao'>
-                <input
-                  type='text'
-                  id='inputDescricao'
-                  value={descricao}
-                  className='form-control'
-                  name='descricao'
-                  onChange={(e) => setDescricao(e.target.value)}
-                />
+              <FormGroup label='Usuário: *' htmlFor='inputUsuario'>
+                <select
+                  id="inputUsuario"
+                  value={idUsuario}
+                  className="form-control form-select"
+                  name="usuario"
+                  onChange={(e) => setIdUsuario(e.target.value)}
+                >
+                  <option value="">Selecione um usuário</option>
+                  {usuarios.map(user => (
+                    <option key={user.id} value={user.id}>
+                      {user.nome}
+                    </option>
+                  ))}
+                </select>
               </FormGroup>
 
               <FormGroup label='Status: *' htmlFor='inputStatus'>
@@ -137,37 +127,17 @@ function CadastroSugestao() {
                   name="status"
                   onChange={(e) => setStatus(e.target.value)}
                 >
-                  <option value="Pendente">Pendente</option>
-                  <option value="Recusado">Recusado</option>
-                  <option value="Aprovado">Aprovado</option>
+                  <option value="PENDENTE">Pendente</option>
+                  <option value="APROVADO">Aprovado</option>
+                  <option value="RECUSADO">Recusado</option>
                 </select>
               </FormGroup>
 
-              <FormGroup label='Data de Criação:' htmlFor='inputDataCriacao'>
-                <input
-                  type='date'
-                  id='inputDataCriacao'
-                  value={dataCriacao}
-                  className='form-control'
-                  name='dataCriacao'
-                  onChange={(e) => setDataCriacao(e.target.value)}
-                  disabled
-                />
-              </FormGroup>
-
-              <Stack spacing={1} padding={1} direction='row'>
-                <button
-                  onClick={salvar}
-                  type='button'
-                  className='btn btn-success'
-                >
+              <Stack spacing={1} padding={1} direction='row' className="mt-3">
+                <button onClick={salvar} type='button' className='btn btn-success'>
                   Salvar
                 </button>
-                <button
-                  onClick={inicializar}
-                  type='button'
-                  className='btn btn-danger'
-                >
+                <button onClick={cancelar} type='button' className='btn btn-danger'>
                   Cancelar
                 </button>
               </Stack>

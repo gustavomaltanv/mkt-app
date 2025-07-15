@@ -1,23 +1,22 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 import Card from '../components/Card';
-
 import { mensagemSucesso, mensagemErro } from '../components/Toastr';
-
-import { useNavigate } from 'react-router-dom';
+import { BASE_URL } from '../config/axios';
 
 import Stack from '@mui/material/Stack';
 import { IconButton } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 
-import axios from 'axios';
-import { BASE_URL3 } from '../config/axios';
-
-const baseURL = `${BASE_URL3}/usuarios`;
+const baseURL = `${BASE_URL}/usuarios`;
 
 function ListagemUsuarios() {
   const navigate = useNavigate();
+
+  const [dados, setDados] = useState([]);
 
   const cadastrar = () => {
     navigate(`/cadastro-usuario`);
@@ -27,36 +26,27 @@ function ListagemUsuarios() {
     navigate(`/cadastro-usuario/${id}`);
   };
 
-  const [dados, setDados] = useState(null);
-
-  async function excluir(id) {
-    let data = JSON.stringify({ id });
-    let url = `${baseURL}/${id}`;
-    console.log(url)
-    await axios
-      .delete(url, data, {
-        headers: { 'Content-Type': 'application/json' },
-      })
-      .then(function (response) {
-        mensagemSucesso(`Usuário excluído com sucesso!`);
-        setDados(
-          dados.filter((dado) => {
-            return dado.id !== id;
-          })
-        );
-      })
-      .catch(function (error) {
-        mensagemErro(`Erro ao excluir usuário`);
-      });
-  }
+  const excluir = async (id) => {
+    try {
+      await axios.delete(`${baseURL}/${id}`);
+      mensagemSucesso('Usuário excluído com sucesso!');
+      setDados(dados.filter((dado) => dado.id !== id));
+    } catch (error) {
+      mensagemErro('Erro ao excluir usuário');
+    }
+  };
 
   useEffect(() => {
-    axios.get(baseURL).then((response) => {
-      setDados(response.data);
-    });
+    const fetchUsuarios = async () => {
+      try {
+        const response = await axios.get(baseURL);
+        setDados(response.data);
+      } catch (error) {
+        mensagemErro('Erro ao buscar usuários');
+      }
+    };
+    fetchUsuarios();
   }, []);
-
-  if (!dados) return null;
 
   return (
     <div className='container'>
@@ -67,7 +57,7 @@ function ListagemUsuarios() {
               <button
                 type='button'
                 className='btn btn-warning mb-4'
-                onClick={() => cadastrar()}
+                onClick={cadastrar}
               >
                 Novo usuário
               </button>
@@ -77,21 +67,19 @@ function ListagemUsuarios() {
                     <th scope='col'>Nome</th>
                     <th scope='col'>Email</th>
                     <th scope='col'>Telefone</th>
-                    <th scope='col'>Tipo</th>
-                    <th scope='col'>Ultimo Login</th>
+                    <th scope='col'>CPF</th>
+                    <th scope='col'>Data de Cadastro</th>
                     <th></th>
                   </tr>
                 </thead>
                 <tbody>
-
                   {dados.map((dado) => (
                     <tr key={dado.id}>
                       <td>{dado.nome}</td>
                       <td>{dado.email}</td>
                       <td>{dado.telefone}</td>
-                      <td>{dado.role}</td>
-                      <td>{dado.ultimoLogin}</td>
-
+                      <td>{dado.cpf}</td>
+                      <td>{new Date(dado.dataCadastro).toLocaleDateString()}</td>
                       <td>
                         <Stack spacing={1} padding={0} direction='row'>
                           <IconButton
@@ -100,7 +88,6 @@ function ListagemUsuarios() {
                           >
                             <EditIcon />
                           </IconButton>
-
                           <IconButton
                             aria-label='delete'
                             onClick={() => excluir(dado.id)}

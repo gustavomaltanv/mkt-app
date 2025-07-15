@@ -1,23 +1,22 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 import Card from '../components/Card';
-
 import { mensagemSucesso, mensagemErro } from '../components/Toastr';
-
-import { useNavigate } from 'react-router-dom';
+import { BASE_URL } from '../config/axios';
 
 import Stack from '@mui/material/Stack';
 import { IconButton } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 
-import axios from 'axios';
-import { BASE_URL2 } from '../config/axios';
-
-const baseURL = `${BASE_URL2}/sugestoes`;
+const sugestoesURL = `${BASE_URL}/sugestoes`;
+const usuariosURL = `${BASE_URL}/usuarios`;
 
 function ListagemSugestoes() {
   const navigate = useNavigate();
+  const [sugestoes, setSugestoes] = useState([]);
 
   const cadastrar = () => {
     navigate(`/cadastro-sugestao`);
@@ -27,36 +26,48 @@ function ListagemSugestoes() {
     navigate(`/cadastro-sugestao/${id}`);
   };
 
-  const [dados, setDados] = useState(null);
-
-  async function excluir(id) {
-    let data = JSON.stringify({ id });
-    let url = `${baseURL}/${id}`;
-    console.log(url)
-    await axios
-      .delete(url, data, {
-        headers: { 'Content-Type': 'application/json' },
-      })
-      .then(function (response) {
-        mensagemSucesso(`Sugestão excluída com sucesso!`);
-        setDados(
-          dados.filter((dado) => {
-            return dado.id !== id;
-          })
-        );
-      })
-      .catch(function (error) {
-        mensagemErro(`Erro ao excluir sugestão`);
-      });
-  }
+  const excluir = async (id) => {
+    try {
+      await axios.delete(`${sugestoesURL}/${id}`);
+      mensagemSucesso('Sugestão excluída com sucesso!');
+      setSugestoes(sugestoes.filter((sugestao) => sugestao.id !== id));
+    } catch (error) {
+      mensagemErro('Erro ao excluir sugestão');
+    }
+  };
 
   useEffect(() => {
-    axios.get(baseURL).then((response) => {
-      setDados(response.data);
-    });
-  }, []);
+    const fetchData = async () => {
+      try {
+        // Executa as duas requisições em paralelo
+        const [sugestoesResponse, usuariosResponse] = await Promise.all([
+          axios.get(sugestoesURL),
+          axios.get(usuariosURL)
+        ]);
 
-  if (!dados) return null;
+        const todasSugestoes = sugestoesResponse.data;
+        const todosUsuarios = usuariosResponse.data;
+
+        // Cria um mapa para acesso rápido aos nomes dos usuários pelo ID
+        const userMap = todosUsuarios.reduce((map, user) => {
+          map[user.id] = user.nome;
+          return map;
+        }, {});
+
+        // Adiciona o nome do usuário a cada sugestão
+        const sugestoesComNomes = todasSugestoes.map(sugestao => ({
+          ...sugestao,
+          nomeUsuario: userMap[sugestao.idUsuario] || 'Usuário não encontrado'
+        }));
+
+        setSugestoes(sugestoesComNomes);
+      } catch (error) {
+        mensagemErro('Erro ao carregar dados. Verifique a API.');
+      }
+    };
+
+    fetchData();
+  }, []);
 
   return (
     <div className='container'>
@@ -67,41 +78,36 @@ function ListagemSugestoes() {
               <button
                 type='button'
                 className='btn btn-warning mb-4'
-                onClick={() => cadastrar()}
+                onClick={cadastrar}
               >
                 Nova sugestão
               </button>
               <table className='table table-hover table-striped'>
                 <thead>
                   <tr>
-                    <th scope='col'>Nome</th>
-                    <th scope='col'>Descrição</th>
+                    <th scope='col'>Nome do Produto</th>
+                    <th scope='col'>Usuário</th>
                     <th scope='col'>Status</th>
-                    <th scope='col'>Data de Criação</th>
-                    <th></th>
+                    <th scope='col'>Ações</th>
                   </tr>
                 </thead>
                 <tbody>
-
-                  {dados.map((dado) => (
-                    <tr key={dado.id}>
-                      <td>{dado.nome}</td>
-                      <td>{dado.descricao}</td>
-                      <td>{dado.status}</td>
-                      <td>{dado.dataCriacao}</td>
-
+                  {sugestoes.map((sugestao) => (
+                    <tr key={sugestao.id}>
+                      <td>{sugestao.nome}</td>
+                      <td>{sugestao.nomeUsuario}</td>
+                      <td>{sugestao.status}</td>
                       <td>
                         <Stack spacing={1} padding={0} direction='row'>
                           <IconButton
                             aria-label='edit'
-                            onClick={() => editar(dado.id)}
+                            onClick={() => editar(sugestao.id)}
                           >
                             <EditIcon />
                           </IconButton>
-
                           <IconButton
                             aria-label='delete'
-                            onClick={() => excluir(dado.id)}
+                            onClick={() => excluir(sugestao.id)}
                           >
                             <DeleteIcon />
                           </IconButton>
@@ -110,7 +116,7 @@ function ListagemSugestoes() {
                     </tr>
                   ))}
                 </tbody>
-              </table>{' '}
+              </table>
             </div>
           </div>
         </div>

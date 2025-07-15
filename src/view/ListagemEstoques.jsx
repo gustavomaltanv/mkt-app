@@ -1,23 +1,22 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 import Card from '../components/Card';
-
 import { mensagemSucesso, mensagemErro } from '../components/Toastr';
-
-import { useNavigate } from 'react-router-dom';
+import { BASE_URL } from '../config/axios';
 
 import Stack from '@mui/material/Stack';
 import { IconButton } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 
-import axios from 'axios';
-import { BASE_URL } from '../config/axios';
-
-const baseURL = `${BASE_URL}/estoques`;
+const estoquesURL = `${BASE_URL}/estoques`;
+const produtosURL = `${BASE_URL}/produtos`;
 
 function ListagemEstoques() {
   const navigate = useNavigate();
+  const [estoques, setEstoques] = useState([]);
 
   const cadastrar = () => {
     navigate(`/cadastro-estoque`);
@@ -27,36 +26,48 @@ function ListagemEstoques() {
     navigate(`/cadastro-estoque/${id}`);
   };
 
-  const [dados, setDados] = useState(null);
-
-  async function excluir(id) {
-    let data = JSON.stringify({ id });
-    let url = `${baseURL}/${id}`;
-    console.log(url)
-    await axios
-      .delete(url, data, {
-        headers: { 'Content-Type': 'application/json' },
-      })
-      .then(function (response) {
-        mensagemSucesso(`Estoque excluído com sucesso!`);
-        setDados(
-          dados.filter((dado) => {
-            return dado.id !== id;
-          })
-        );
-      })
-      .catch(function (error) {
-        mensagemErro(`Erro ao excluir estoque`);
-      });
-  }
+  const excluir = async (id) => {
+    try {
+      await axios.delete(`${estoquesURL}/${id}`);
+      mensagemSucesso('Registro de estoque excluído com sucesso!');
+      setEstoques(estoques.filter((estoque) => estoque.id !== id));
+    } catch (error) {
+      mensagemErro('Erro ao excluir registro de estoque.');
+    }
+  };
 
   useEffect(() => {
-    axios.get(baseURL).then((response) => {
-      setDados(response.data);
-    });
-  }, []);
+    const fetchData = async () => {
+      try {
+        // Busca estoques e produtos em paralelo
+        const [estoquesResponse, produtosResponse] = await Promise.all([
+          axios.get(estoquesURL),
+          axios.get(produtosURL),
+        ]);
 
-  if (!dados) return null;
+        const todosEstoques = estoquesResponse.data;
+        const todosProdutos = produtosResponse.data;
+
+        // Cria um mapa para acesso rápido aos nomes dos produtos
+        const produtoMap = todosProdutos.reduce((map, produto) => {
+          map[produto.id] = produto.nome;
+          return map;
+        }, {});
+
+        // Adiciona o nome do produto a cada registro de estoque
+        const estoquesComNomes = todosEstoques.map(estoque => ({
+          ...estoque,
+          produtoNome: produtoMap[estoque.idProduto] || 'Produto não encontrado',
+        }));
+
+        setEstoques(estoquesComNomes);
+      } catch (error) {
+        mensagemErro('Erro ao carregar os dados de estoques ou produtos.');
+      }
+    };
+
+    fetchData();
+  }, []);
 
   return (
     <div className='container'>
@@ -67,42 +78,34 @@ function ListagemEstoques() {
               <button
                 type='button'
                 className='btn btn-warning mb-4'
-                onClick={() => cadastrar()}
+                onClick={cadastrar}
               >
-                Novo estoque
+                Novo Estoque
               </button>
               <table className='table table-hover table-striped'>
                 <thead>
                   <tr>
-                    <th scope='col'>Lote</th>
                     <th scope='col'>Produto</th>
                     <th scope='col'>Quantidade</th>
-                    <th scope='col'>Validade</th>
-
-                    <th></th>
+                    <th scope='col'>Ações</th>
                   </tr>
                 </thead>
                 <tbody>
-
-                  {dados.map((dado) => (
-                    <tr key={dado.id}>
-                      <td>{dado.lote}</td>
-                      <td>{dado.produtoNome}</td>
-                      <td>{dado.quantidade}</td>
-                      <td>{dado.validade}</td>
-
+                  {estoques.map((estoque) => (
+                    <tr key={estoque.id}>
+                      <td>{estoque.produtoNome}</td>
+                      <td>{estoque.quantidade}</td>
                       <td>
                         <Stack spacing={1} padding={0} direction='row'>
                           <IconButton
                             aria-label='edit'
-                            onClick={() => editar(dado.id)}
+                            onClick={() => editar(estoque.id)}
                           >
                             <EditIcon />
                           </IconButton>
-
                           <IconButton
                             aria-label='delete'
-                            onClick={() => excluir(dado.id)}
+                            onClick={() => excluir(estoque.id)}
                           >
                             <DeleteIcon />
                           </IconButton>
@@ -111,7 +114,7 @@ function ListagemEstoques() {
                     </tr>
                   ))}
                 </tbody>
-              </table>{' '}
+              </table>
             </div>
           </div>
         </div>

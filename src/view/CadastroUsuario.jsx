@@ -1,150 +1,112 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-
-import Stack from '@mui/material/Stack';
+import axios from 'axios';
 
 import Card from '../components/Card';
 import FormGroup from '../components/FormGroup';
-
 import { mensagemSucesso, mensagemErro } from '../components/Toastr';
+import { BASE_URL } from '../config/axios'; // Assumindo que BASE_URL está configurado para http://localhost:8080/api/v1
 
+import Stack from '@mui/material/Stack';
 
-
-import axios from 'axios';
-import { BASE_URL3 } from '../config/axios';
-
-const baseURL = `${BASE_URL3}/usuarios`;
+const baseURL = `${BASE_URL}/usuarios`;
 
 function CadastroUsuario() {
   const { idParam } = useParams();
-
   const navigate = useNavigate();
+  const isNewUser = idParam === undefined;
 
-  const [id, setId] = useState('');
+  // Estados para os campos do formulário
   const [nome, setNome] = useState('');
   const [cpf, setCpf] = useState('');
   const [email, setEmail] = useState('');
   const [telefone, setTelefone] = useState('');
+  const [dataNascimento, setDataNascimento] = useState('');
   const [estado, setEstado] = useState('');
   const [cidade, setCidade] = useState('');
-  const [cep, setCep] = useState('');
   const [bairro, setBairro] = useState('');
   const [logradouro, setLogradouro] = useState('');
   const [numero, setNumero] = useState('');
   const [complemento, setComplemento] = useState('');
-  const [dataNascimento, setDataNascimento] = useState(new Date());
 
+  // Busca os dados do usuário para edição
+  useEffect(() => {
+    if (!isNewUser) {
+      axios.get(`${baseURL}/${idParam}`)
+        .then(response => {
+          const { data } = response;
+          setNome(data.nome);
+          setCpf(data.cpf);
+          setEmail(data.email);
+          setTelefone(data.telefone);
+          setDataNascimento(data.dataNascimento || '');
+          setEstado(data.estado);
+          setCidade(data.cidade);
+          setBairro(data.bairro);
+          setLogradouro(data.logradouro);
+          setNumero(data.numero);
+          setComplemento(data.complemento || '');
+        })
+        .catch(error => {
+          mensagemErro('Usuário não encontrado.');
+          navigate('/listagem-usuarios');
+        });
+    }
+  }, [idParam, isNewUser, navigate]);
 
-  const [dados, setDados] = useState([]);
-  
-  function inicializar() {
-    if (idParam == null) {
-      setId('');
-      setNome('');
-      setTelefone('');
-      setEmail('');
-      setCpf('');
-      setEstado('');
-      setCidade('');
-      setCep('');
-      setBairro('');
-      setLogradouro('');
-      setNumero('');
-      setComplemento('');
-      setDataNascimento(null);
-    } 
-    else {
-      setId(dados.id);
-      setNome(dados.nome);
-      setTelefone(dados.telefone);
-      setEmail(dados.email);
-      setCpf(dados.cpf);
-      setEstado(dados.estado);
-      setCidade(dados.cidade);
-      setCep(dados.cep);
-      setBairro(dados.bairro);
-      setLogradouro(dados.logradouro);
-      setNumero(dados.numero);
-      setComplemento(dados.complemento);
-      setDataNascimento(dados.dataNascimento);
-    } 
-  }
+  const getTodayDate = () => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
 
-  async function salvar() {
-    let data = {
-      id,
+  const salvar = async () => {
+    const dataAtual = getTodayDate();
+    const data = {
       nome,
-      telefone,
       email,
+      telefone,
       cpf,
+      dataNascimento,
       estado,
       cidade,
-      cep,
       bairro,
       logradouro,
       numero,
       complemento,
-      dataNascimento,
+      dataAtualizacao: dataAtual
     };
-    data = JSON.stringify(data);
-    if (idParam == null) {
-      await axios
-        .post(baseURL, data, {
-          headers: { 'Content-Type': 'application/json' },
-        })
-        .then(function (response) {
-          mensagemSucesso(`Usuário ${nome} cadastrado(a) com sucesso!`)
-          navigate(`/listagem-usuarios`);
-      }) 
-        .catch(function (error) {
-          mensagemErro(error.response.data);
-      });
+
+    let request;
+    let successMessage;
+
+    if (isNewUser) {
+      data.dataCadastro = dataAtual;
+      request = axios.post(baseURL, data);
+      successMessage = `Usuário ${nome} cadastrado com sucesso!`;
+    } else {
+      request = axios.put(`${baseURL}/${idParam}`, data);
+      successMessage = `Usuário ${nome} atualizado com sucesso!`;
     }
-    else {
-      await axios
-        .put(`${baseURL}/${idParam}`, data, {
-          headers: { 'Content-Type': 'application/json' },
-        })
-        .then(function (response) {
-          mensagemSucesso(`Usuário ${nome} alterado(a) com sucesso!`);
-          navigate(`/listagem-usuarios`);
-        })
-        .catch(function (error) {
-          mensagemErro(error.response.data);
-      });
+
+    try {
+      await request;
+      mensagemSucesso(successMessage);
+      navigate('/listagem-usuarios');
+    } catch (error) {
+      mensagemErro(error.response?.data || 'Ocorreu um erro ao salvar.');
     }
+  };
+  
+  const cancelar = () => {
+      navigate('/listagem-usuarios');
   }
-
-  async function buscar() {
-    if (idParam != null){
-      await axios.get(`${baseURL}/${idParam}`).then((response) => {
-        setDados(response.data);
-      });
-      setId(dados.id);
-      setNome(dados.nome);
-      setTelefone(dados.telefone);
-      setEmail(dados.email);
-      setCpf(dados.cpf);
-      setEstado(dados.endereco.estado);
-      setCidade(dados.endereco.cidade);
-      setCep(dados.endereco.cep);
-      setBairro(dados.endereco.bairro);
-      setLogradouro(dados.endereco.logradouro);
-      setNumero(dados.endereco.numero);
-      setComplemento(dados.endereco.complemento);
-      setDataNascimento(dados.dataNascimento);
-    }
-  }
-
-  useEffect(() => {
-    buscar();
-  }, [id]);
-
-  if (!dados) return null;
 
   return (
     <div className='container'>
-      <Card title='Cadastro de Usuário'>
+      <Card title={isNewUser ? 'Cadastro de Usuário' : 'Edição de Usuário'}>
         <div className='row'>
           <div className='col-lg-12'>
             <div className='bs-component'>
@@ -161,7 +123,6 @@ function CadastroUsuario() {
               <FormGroup label='Telefone: *' htmlFor='inputTelefone'>
                 <input
                   type='tel'
-                  pattern="([0-9]{2}) [0-9]{5}-[0-9]{4}"
                   id='inputTelefone'
                   value={telefone}
                   className='form-control'
@@ -169,7 +130,6 @@ function CadastroUsuario() {
                   onChange={(e) => setTelefone(e.target.value)}
                 />
               </FormGroup>
-              
               <FormGroup label='E-mail: *' htmlFor='inputEmail'>
                 <input
                   type='email'
@@ -180,7 +140,6 @@ function CadastroUsuario() {
                   onChange={(e) => setEmail(e.target.value)}
                 />
               </FormGroup>
-              
               <FormGroup label='CPF: *' htmlFor='inputCpf'>
                 <input
                   type='text'
@@ -191,7 +150,6 @@ function CadastroUsuario() {
                   onChange={(e) => setCpf(e.target.value)}
                 />
               </FormGroup>
-
               <FormGroup label='Estado: *' htmlFor='inputEstado'>
                 <input
                   type='text'
@@ -202,7 +160,6 @@ function CadastroUsuario() {
                   onChange={(e) => setEstado(e.target.value)}
                 />
               </FormGroup>
-
               <FormGroup label='Cidade: *' htmlFor='inputCidade'>
                 <input
                   type='text'
@@ -213,18 +170,6 @@ function CadastroUsuario() {
                   onChange={(e) => setCidade(e.target.value)}
                 />
               </FormGroup>
-
-              <FormGroup label='CEP: *' htmlFor='inputCep'>
-                <input
-                  type='text'
-                  id='inputCep'
-                  value={cep}
-                  className='form-control'
-                  name='cep'
-                  onChange={(e) => setCep(e.target.value)}
-                />
-              </FormGroup>
-
               <FormGroup label='Bairro: *' htmlFor='inputBairro'>
                 <input
                   type='text'
@@ -235,7 +180,6 @@ function CadastroUsuario() {
                   onChange={(e) => setBairro(e.target.value)}
                 />
               </FormGroup>
-
               <FormGroup label='Logradouro: *' htmlFor='inputLogradouro'>
                 <input
                   type='text'
@@ -246,7 +190,6 @@ function CadastroUsuario() {
                   onChange={(e) => setLogradouro(e.target.value)}
                 />
               </FormGroup>
-
               <FormGroup label='Número: *' htmlFor='inputNumero'>
                 <input
                   type='text'
@@ -257,7 +200,6 @@ function CadastroUsuario() {
                   onChange={(e) => setNumero(e.target.value)}
                 />
               </FormGroup>
-
               <FormGroup label='Complemento:' htmlFor='inputComplemento'>
                 <input
                   type='text'
@@ -268,7 +210,6 @@ function CadastroUsuario() {
                   onChange={(e) => setComplemento(e.target.value)}
                 />
               </FormGroup>
-
               <FormGroup label='Data de Nascimento: *' htmlFor='inputDataNascimento'>
                 <input
                   type='date'
@@ -289,7 +230,7 @@ function CadastroUsuario() {
                   Salvar
                 </button>
                 <button
-                  onClick={inicializar}
+                  onClick={cancelar}
                   type='button'
                   className='btn btn-danger'
                 >
