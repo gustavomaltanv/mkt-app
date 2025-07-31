@@ -11,18 +11,23 @@ import ListagemEstoques from "./view/ListagemEstoques";
 import CadastroEstoque from "./view/CadastroEstoque";
 import ListagemCompras from "./view/ListagemCompras";
 import CadastroCompra from "./view/CadastroCompra";
+import Login from "./view/Login";
+import ProtectedRoute from "./main/ProtectedRoot";
 
 const rotas = createBrowserRouter([
+
   {
-    element:<RootLayout />,
+    path: "/login",
+    element: <Login />
+  },
+  {
+    element: <ProtectedRoute />,
     children: [
       {
         path: "/",
         element: <> </>
       },
-
       /* Listagens */
-
       {
         path: "/listagem-usuarios",
         element: <ListagemUsuarios />
@@ -72,7 +77,7 @@ const rotas = createBrowserRouter([
 
       {
         path: "*",
-        element: <> 404 NOT FOUND </>
+        element: <> <h1>404 NOT FOUND</h1> <a href="/login">Voltar para Login</a> </>
       },
     ]
   }

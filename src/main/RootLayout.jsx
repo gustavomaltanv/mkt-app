@@ -5,9 +5,7 @@ import { ThemeProvider } from '../context/ThemeContext';
 
 function RootLayout() {
   return (
-    // 1. O ThemeProvider envolve tudo
     <ThemeProvider>
-      {/* 2. A Navbar e o Outlet (onde as páginas são renderizadas) ficam dentro dele */}
       <Navbar />
       <main className="container">
         <Outlet />

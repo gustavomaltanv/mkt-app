@@ -1,12 +1,19 @@
 import React, { useContext } from 'react';
 import NavbarItem from "./NavbarItem";
-import { ThemeContext } from '../context/ThemeContext'; // 1. Importe o contexto
+import { useNavigate } from 'react-router-dom';
+import { ThemeContext } from '../context/ThemeContext';
+import { useAuth } from '../hooks/useAuth';
 
 export function Navbar() {
-  // 2. Acesse o tema e a função de troca
   const { theme, toggleTheme } = useContext(ThemeContext);
+  const navigate = useNavigate();
+  const { isAdmin } = useAuth();
 
-  // Determina a classe da navbar com base no tema
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    navigate('/login');
+  };
+
   const navClass = theme === 'dark' 
     ? "navbar navbar-expand-lg bg-dark mb-2" 
     : "navbar navbar-expand-lg bg-light mb-2";
@@ -22,35 +29,32 @@ export function Navbar() {
           <div className="collapse navbar-collapse" id="navbarColor02">
 
             <ul className="navbar-nav me-auto">
-              {/* Seus NavbarItem's continuam aqui... */}
-              <li className="nav-item">
-                <NavbarItem render='true' href='/listagem-compras' label='Compras' />
-              </li>
-              <li className="nav-item">
-                <NavbarItem render='true' href='/listagem-produtos' label='Produtos' />
-              </li>
-              <li className="nav-item">
-                <NavbarItem render='true' href='/listagem-estoques' label='Estoques' />
-              </li>
-              <li className="nav-item">
-                <NavbarItem render='true' href='/listagem-sugestoes' label='Sugestões' />
-              </li>
-              <li className="nav-item">
-                <NavbarItem render='true' href='/listagem-usuarios' label='Usuários' />
-              </li>
+              <NavbarItem render={true} href='/listagem-compras' label='Compras' />
+              <NavbarItem render={true} href='/listagem-produtos' label='Produtos' />
+              <NavbarItem render={true} href='/listagem-sugestoes' label='Sugestões' />
+              
+              <NavbarItem render={isAdmin} href='/listagem-estoques' label='Estoques' />
+              <NavbarItem render={isAdmin} href='/listagem-usuarios' label='Usuários' />
             </ul>
 
-            {/* 3. Adicione o botão de troca de tema */}
-            <ul className="navbar-nav ms-auto">
-                <li className="nav-item">
+            <ul className="navbar-nav ms-auto d-flex align-items-center">
+                <li className="nav-item me-2">
                     <button 
                         type="button" 
                         className="btn btn-outline-secondary" 
                         onClick={toggleTheme}
                     >
-                        {/* Altera o ícone com base no tema */}
                         {theme === 'light' ? '🌙' : '☀️'}
                     </button>
+                </li>
+                <li className="nav-item">
+                  <button
+                    type="button"
+                    className="btn btn-outline-danger"
+                    onClick={handleLogout}
+                  >
+                    Sair
+                  </button>
                 </li>
             </ul>
             
